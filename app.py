@@ -5,7 +5,6 @@ from openai import OpenAI
 import time
 from collections import deque
 from datetime import datetime, timedelta
-import json
 
 load_dotenv()
 
@@ -63,12 +62,13 @@ def chat():
                         "content": user_message
                     }
                 ],
-                stream=True  # Enable streaming
+                stream=True
             )
-
+            
             for chunk in stream:
-                if chunk.choices[0].delta.content is not None:
-                    yield f"data: {json.dumps({'content': chunk.choices[0].delta.content})}\n\n"
+                if chunk.choices[0].delta.content:
+                    yield f"data: {chunk.choices[0].delta.content}\n\n"
+            yield "data: [DONE]\n\n"
 
         return Response(generate(), mimetype='text/event-stream')
 
