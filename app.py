@@ -28,7 +28,13 @@ def chat():
     }
     
     payload = {
-        "messages": [{"role": "user", "content": user_message}]
+        "model": "gpt-4",  # or whichever model xAI specifies
+        "messages": [
+            {
+                "role": "user",
+                "content": user_message
+            }
+        ]
     }
     
     try:
