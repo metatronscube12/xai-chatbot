@@ -8,7 +8,7 @@ load_dotenv()
 app = Flask(__name__)
 
 XAI_API_KEY = os.getenv('XAI_API_KEY')
-XAI_API_URL = "https://api.x.ai/v1"
+XAI_API_URL = "https://api.x.ai/v1/chat/completions"
 
 @app.route('/')
 def home():
