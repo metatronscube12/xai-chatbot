@@ -14,9 +14,9 @@ client = OpenAI(
     base_url="https://api.x.ai/v1",
 )
 
-# Simple rate limiting
+# Increase rate limiting
 last_request_time = 0
-MIN_REQUEST_INTERVAL = 1  # Minimum time between requests in seconds
+MIN_REQUEST_INTERVAL = 5  # Increased to 5 seconds between requests
 
 @app.route('/')
 def home():
@@ -26,10 +26,15 @@ def home():
 def chat():
     global last_request_time
     
-    # Check rate limit
+    # Strict rate limiting
     current_time = time.time()
-    if current_time - last_request_time < MIN_REQUEST_INTERVAL:
-        return jsonify({"error": "Please wait a moment before sending another message"}), 429
+    time_since_last_request = current_time - last_request_time
+    
+    if time_since_last_request < MIN_REQUEST_INTERVAL:
+        wait_time = MIN_REQUEST_INTERVAL - time_since_last_request
+        return jsonify({
+            "error": f"Please wait {round(wait_time)} seconds before sending another message"
+        }), 429
     
     last_request_time = current_time
     
@@ -40,37 +45,28 @@ def chat():
         return jsonify({"error": "No message provided"}), 400
     
     try:
-        # Add retry logic
-        max_retries = 3
-        retry_delay = 2  # seconds
+        response = client.chat.completions.create(
+            model="grok-2-latest",
+            messages=[
+                {"role": "system", "content": "You are Grok, a chatbot inspired by the Hitchhikers Guide to the Galaxy."},
+                {"role": "user", "content": user_message},
+            ],
+            stream=False  # Changed to non-streaming for now
+        )
         
-        for attempt in range(max_retries):
-            try:
-                stream = client.chat.completions.create(
-                    model="grok-2-latest",
-                    messages=[
-                        {"role": "system", "content": "You are Grok, a chatbot inspired by the Hitchhikers Guide to the Galaxy."},
-                        {"role": "user", "content": user_message},
-                    ],
-                    stream=True
-                )
-                
-                def generate():
-                    for chunk in stream:
-                        if chunk.choices[0].delta.content is not None:
-                            yield f"data: {chunk.choices[0].delta.content}\n\n"
-                
-                return Response(generate(), mimetype='text/event-stream')
-                
-            except Exception as e:
-                if "429" in str(e) and attempt < max_retries - 1:
-                    time.sleep(retry_delay)
-                    retry_delay *= 2  # Exponential backoff
-                    continue
-                raise
+        # Extract the response content
+        if hasattr(response, 'choices') and len(response.choices) > 0:
+            return jsonify({"response": response.choices[0].message.content})
+        else:
+            return jsonify({"error": "No response content received"}), 500
                 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        error_message = str(e)
+        if "429" in error_message:
+            return jsonify({
+                "error": "Rate limit reached. Please wait 30 seconds before trying again."
+            }), 429
+        return jsonify({"error": error_message}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
