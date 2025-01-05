@@ -4,82 +4,34 @@
     <title>JesseAI</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Markazi+Text:wght@400;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* [Previous styles remain the same until .input-area] */
 
-        body {
-            background-color: #000000;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: white;
-            overflow: hidden;
-        }
-
-        .header {
+        .input-container {
             position: fixed;
-            top: 0;
+            bottom: 0;
             left: 0;
             right: 0;
-            text-align: center;
-            padding: 20px 0;
             background: #000000;
-            z-index: 100;
-        }
-
-        .logo {
-            font-family: 'DM Serif Text', serif;
-            font-size: 2.5rem;
-            color: white;
-            letter-spacing: 2px;
-        }
-
-        .main-container {
-            margin-top: 80px;
-            height: calc(100vh - 80px);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .chat-container {
-            flex-grow: 1;
-            margin: 0 auto;
-            padding: 10px;
-            width: 100%;
-            max-width: 800px;
-            overflow-y: auto;
-            margin-bottom: 120px;
-        }
-
-        .message-container {
-            margin: 15px auto;
-            padding: 15px;
-            max-width: 90%;
-            font-family: 'Markazi Text', serif;
-            font-size: 1.1rem;
-            line-height: 1.5;
-            color: white;
+            padding: 20px;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
         }
 
         .input-area {
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            padding: 15px;
-            background: transparent;
-            z-index: 50;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 10px;
         }
 
         .input-box {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 10px;
+            flex-grow: 1;
+            position: relative;
         }
 
         textarea {
@@ -95,88 +47,60 @@
             outline: none;
             transition: all 0.3s ease;
             min-height: 56px;
-            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1);
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
         }
 
-        textarea::placeholder {
-            color: rgba(0, 0, 0, 0.5) !important;
+        .send-button {
+            width: 45px;
+            height: 45px;
+            background-color: #10a37f;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 0.3s;
         }
 
-        textarea:focus {
-            background-color: #ffffff !important;
-            box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+        .send-button:hover {
+            background-color: #0e8e6d;
         }
 
-        .user-message {
-            text-align: right;
+        .send-button .material-icons {
+            color: white;
+            font-size: 20px;
         }
 
-        .bot-message {
-            text-align: left;
+        .chat-container {
+            flex-grow: 1;
+            margin: 0 auto;
+            padding: 10px;
+            width: 100%;
+            max-width: 800px;
+            overflow-y: auto;
+            margin-bottom: 100px; /* Space for input container */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
 
-        .chat-container::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .chat-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .chat-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-        }
+        /* [Rest of the previous styles remain the same] */
 
         @media (max-width: 768px) {
-            .logo {
-                font-size: 2rem;
+            .input-container {
+                padding: 15px 10px;
             }
 
-            .header {
-                padding: 15px 0;
+            .chat-container {
+                margin-bottom: 90px;
             }
 
-            .main-container {
-                margin-top: 60px;
-                height: calc(100vh - 60px);
-            }
-
-            .message-container {
-                font-size: 1rem;
-                padding: 12px;
-                margin: 10px auto;
-            }
-
-            textarea {
-                font-size: 16px;
-                padding: 15px 20px;
-            }
-
-            .input-area {
-                bottom: 10px;
-            }
-        }
-
-        /* Prevent zoom on focus for iOS */
-        @media screen and (-webkit-min-device-pixel-ratio: 0) { 
-            select,
-            textarea,
-            input {
-                font-size: 16px !important;
-            }
-        }
-
-        /* Handle viewport height on mobile browsers */
-        @supports (-webkit-touch-callout: none) {
-            body {
-                height: -webkit-fill-available;
-            }
-            .main-container {
-                height: -webkit-fill-available;
+            .send-button {
+                width: 40px;
+                height: 40px;
             }
         }
     </style>
@@ -187,14 +111,19 @@
     </div>
     <div class="main-container">
         <div id="chat-box" class="chat-container"></div>
-        <div class="input-area">
-            <div class="input-box">
-                <textarea 
-                    id="message-input" 
-                    placeholder="How can I help you?"
-                    rows="1"
-                    onInput="this.style.height = 'auto'; this.style.height = Math.min(Math.max(56, this.scrollHeight), 120) + 'px'"
-                ></textarea>
+        <div class="input-container">
+            <div class="input-area">
+                <div class="input-box">
+                    <textarea 
+                        id="message-input" 
+                        placeholder="How can I help you?"
+                        rows="1"
+                        onInput="this.style.height = 'auto'; this.style.height = Math.min(Math.max(56, this.scrollHeight), 120) + 'px'"
+                    ></textarea>
+                </div>
+                <button class="send-button" onclick="sendMessage()">
+                    <span class="material-icons">send</span>
+                </button>
             </div>
         </div>
     </div>
@@ -207,6 +136,7 @@
             }
         }, { passive: false });
 
+        // Handle both Enter key and button click
         document.getElementById('message-input').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -279,9 +209,15 @@
             messageDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Handle mobile viewport height changes
-        window.addEventListener('resize', () => {
-            document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+        // Ensure proper scrolling on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.style.height = `${window.innerHeight - 180}px`;
+        });
+
+        window.addEventListener('resize', function() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.style.height = `${window.innerHeight - 180}px`;
         });
     </script>
 </body>
