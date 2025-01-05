@@ -10,7 +10,7 @@
     </style>
 </head>
 <body>
-    <h1>xAI Chatbot</h1>
+    <h1>Grok Chatbot</h1>
     <div id="chat-box"></div>
     <input type="text" id="message-input" placeholder="Type your message...">
     <button onclick="sendMessage()">Send</button>
@@ -23,20 +23,18 @@
 
             displayMessage('You: ' + message);
             
-            fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                displayMessage('Bot: ' + JSON.stringify(data));
-            })
-            .catch(error => {
-                displayMessage('Error: ' + error);
-            });
+            const eventSource = new EventSource('/chat?message=' + encodeURIComponent(message));
+            let botResponse = 'Bot: ';
+            
+            eventSource.onmessage = function(event) {
+                botResponse += event.data;
+                updateLastMessage(botResponse);
+            };
+            
+            eventSource.onerror = function() {
+                eventSource.close();
+                displayMessage(botResponse);
+            };
 
             input.value = '';
         }
@@ -44,6 +42,17 @@
         function displayMessage(message) {
             const chatBox = document.getElementById('chat-box');
             chatBox.innerHTML += '<div>' + message + '</div>';
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updateLastMessage(message) {
+            const chatBox = document.getElementById('chat-box');
+            const messages = chatBox.getElementsByTagName('div');
+            if (messages.length > 0) {
+                messages[messages.length - 1].innerHTML = message;
+            } else {
+                displayMessage(message);
+            }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
     </script>
