@@ -2,21 +2,16 @@ from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import os
 from openai import OpenAI
-import time
 
 load_dotenv()
 
 app = Flask(__name__)
 
-XAI_API_KEY = os.getenv('XAI_API_KEY')
+# Initialize the client properly
 client = OpenAI(
-    api_key=XAI_API_KEY,
-    base_url="https://api.x.ai/v1",
+    api_key=os.getenv('XAI_API_KEY'),
+    base_url="https://api.x.ai/v1"
 )
-
-# Global variable to track last request time
-last_request_time = 0
-MIN_REQUEST_INTERVAL = 30  # 30 seconds between requests
 
 @app.route('/')
 def home():
@@ -24,16 +19,6 @@ def home():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    global last_request_time
-    current_time = time.time()
-    
-    # Check if enough time has passed since last request
-    if current_time - last_request_time < MIN_REQUEST_INTERVAL:
-        remaining_time = round(MIN_REQUEST_INTERVAL - (current_time - last_request_time))
-        return jsonify({
-            "error": f"Please wait {remaining_time} seconds before sending another message"
-        }), 429
-
     data = request.json
     user_message = data.get('message')
     
@@ -41,24 +26,21 @@ def chat():
         return jsonify({"error": "No message provided"}), 400
 
     try:
-        # Update last request time
-        last_request_time = current_time
-        
-        # Make the API call
         completion = client.chat.completions.create(
-            model="grok-2-latest",
+            model="grok-1",  # Using grok-1 as it might have different rate limits
             messages=[
-                {"role": "user", "content": user_message}
+                {
+                    "role": "user",
+                    "content": user_message
+                }
             ]
         )
         
-        # Get the response
-        response_text = completion.choices[0].message.content
-        return jsonify({"response": response_text})
+        return jsonify({"response": completion.choices[0].message.content})
 
     except Exception as e:
-        print(f"Error: {str(e)}")  # This will show in your Render logs
-        return jsonify({"error": "An error occurred. Please try again in 30 seconds."}), 500
+        print(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
