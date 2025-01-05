@@ -8,7 +8,7 @@ load_dotenv()
 app = Flask(__name__)
 
 XAI_API_KEY = os.getenv('XAI_API_KEY')
-XAI_API_URL = "https://api.x.ai/v1"  # Note: Replace this with actual xAI endpoint
+XAI_API_URL = "https://api.x.ai/v1"
 
 @app.route('/')
 def home():
@@ -19,12 +19,24 @@ def chat():
     data = request.json
     user_message = data.get('message')
     
-    # Basic error checking
     if not user_message:
         return jsonify({"error": "No message provided"}), 400
     
-    # We'll add the xAI API call here in the next step
-    return jsonify({"response": f"Echo: {user_message}"})
+    headers = {
+        "Authorization": f"Bearer {XAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "messages": [{"role": "user", "content": user_message}]
+    }
+    
+    try:
+        response = requests.post(XAI_API_URL, headers=headers, json=payload)
+        response.raise_for_status()
+        return jsonify(response.json())
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
