@@ -27,7 +27,7 @@ def chat():
 
     try:
         completion = client.chat.completions.create(
-            model="grok-1",  # Using grok-1 as it might have different rate limits
+            model="grok-2-latest",  # Using the correct model as per documentation
             messages=[
                 {
                     "role": "user",
