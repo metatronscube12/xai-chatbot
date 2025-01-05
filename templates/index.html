@@ -8,7 +8,6 @@
         #message-input { width: 80%; padding: 8px; margin-right: 10px; }
         button { padding: 8px 20px; }
         .error { color: red; }
-        .timer { color: blue; }
     </style>
 </head>
 <body>
@@ -18,33 +17,9 @@
         <input type="text" id="message-input" placeholder="Type your message...">
         <button onclick="sendMessage()" id="send-button">Send</button>
     </div>
-    <div id="timer" class="timer"></div>
 
     <script>
-        let canSend = true;
-        let timerInterval;
-
-        function startTimer(seconds) {
-            clearInterval(timerInterval);
-            const timerDiv = document.getElementById('timer');
-            let timeLeft = seconds;
-
-            timerInterval = setInterval(() => {
-                if (timeLeft <= 0) {
-                    timerDiv.textContent = '';
-                    canSend = true;
-                    clearInterval(timerInterval);
-                    document.getElementById('send-button').disabled = false;
-                } else {
-                    timerDiv.textContent = `Please wait ${timeLeft} seconds before sending another message`;
-                    timeLeft--;
-                }
-            }, 1000);
-        }
-
         function sendMessage() {
-            if (!canSend) return;
-
             const input = document.getElementById('message-input');
             const button = document.getElementById('send-button');
             const message = input.value.trim();
@@ -53,32 +28,27 @@
 
             displayMessage('You: ' + message);
             button.disabled = true;
-            canSend = false;
+            let botResponse = 'Bot: ';
+            let currentResponseDiv;
             
-            fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    displayMessage('Error: ' + data.error, 'error');
-                    if (data.error.includes('wait')) {
-                        const seconds = parseInt(data.error.match(/\d+/)[0]);
-                        startTimer(seconds);
-                    }
-                } else {
-                    displayMessage('Bot: ' + data.response);
-                    startTimer(30);  // Start 30-second timer after successful response
-                }
-            })
-            .catch(error => {
-                displayMessage('Error: Server error, please try again later', 'error');
-                startTimer(30);
-            });
+            // Create a new div for the bot's response
+            currentResponseDiv = document.createElement('div');
+            document.getElementById('chat-box').appendChild(currentResponseDiv);
+            currentResponseDiv.textContent = botResponse;
+
+            const eventSource = new EventSource(`/chat?message=${encodeURIComponent(message)}`);
+            
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                botResponse += data.content;
+                currentResponseDiv.textContent = botResponse;
+                currentResponseDiv.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            eventSource.onerror = function() {
+                eventSource.close();
+                button.disabled = false;
+            };
 
             input.value = '';
         }
