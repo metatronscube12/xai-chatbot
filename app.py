@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, Response
+from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import os
 from openai import OpenAI
@@ -14,9 +14,9 @@ client = OpenAI(
     base_url="https://api.x.ai/v1",
 )
 
-# Increase rate limiting
+# Global variable to track last request time
 last_request_time = 0
-MIN_REQUEST_INTERVAL = 5  # Increased to 5 seconds between requests
+MIN_REQUEST_INTERVAL = 30  # 30 seconds between requests
 
 @app.route('/')
 def home():
@@ -25,48 +25,40 @@ def home():
 @app.route('/chat', methods=['POST'])
 def chat():
     global last_request_time
-    
-    # Strict rate limiting
     current_time = time.time()
-    time_since_last_request = current_time - last_request_time
     
-    if time_since_last_request < MIN_REQUEST_INTERVAL:
-        wait_time = MIN_REQUEST_INTERVAL - time_since_last_request
+    # Check if enough time has passed since last request
+    if current_time - last_request_time < MIN_REQUEST_INTERVAL:
+        remaining_time = round(MIN_REQUEST_INTERVAL - (current_time - last_request_time))
         return jsonify({
-            "error": f"Please wait {round(wait_time)} seconds before sending another message"
+            "error": f"Please wait {remaining_time} seconds before sending another message"
         }), 429
-    
-    last_request_time = current_time
-    
+
     data = request.json
     user_message = data.get('message')
     
     if not user_message:
         return jsonify({"error": "No message provided"}), 400
-    
+
     try:
-        response = client.chat.completions.create(
+        # Update last request time
+        last_request_time = current_time
+        
+        # Make the API call
+        completion = client.chat.completions.create(
             model="grok-2-latest",
             messages=[
-                {"role": "system", "content": "You are Grok, a chatbot inspired by the Hitchhikers Guide to the Galaxy."},
-                {"role": "user", "content": user_message},
-            ],
-            stream=False  # Changed to non-streaming for now
+                {"role": "user", "content": user_message}
+            ]
         )
         
-        # Extract the response content
-        if hasattr(response, 'choices') and len(response.choices) > 0:
-            return jsonify({"response": response.choices[0].message.content})
-        else:
-            return jsonify({"error": "No response content received"}), 500
-                
+        # Get the response
+        response_text = completion.choices[0].message.content
+        return jsonify({"response": response_text})
+
     except Exception as e:
-        error_message = str(e)
-        if "429" in error_message:
-            return jsonify({
-                "error": "Rate limit reached. Please wait 30 seconds before trying again."
-            }), 429
-        return jsonify({"error": error_message}), 500
+        print(f"Error: {str(e)}")  # This will show in your Render logs
+        return jsonify({"error": "An error occurred. Please try again in 30 seconds."}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
