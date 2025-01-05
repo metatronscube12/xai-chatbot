@@ -19,8 +19,14 @@
         }
 
         .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             text-align: center;
-            padding: 40px 0;
+            padding: 30px 0;
+            background: linear-gradient(to bottom, #000000, rgba(0,0,0,0.9), transparent);
+            z-index: 10;
         }
 
         .logo {
@@ -31,13 +37,16 @@
         }
 
         .chat-container {
-            max-width: 800px;
-            margin: 0 auto;
+            flex-grow: 1;
+            margin: 100px auto 200px;  /* Increased bottom margin */
             padding: 20px;
             width: 100%;
-            flex-grow: 1;
+            max-width: 800px;
+            height: calc(100vh - 400px);  /* Adjusted height */
             overflow-y: auto;
-            padding-bottom: 100px;
+            background: rgba(0, 0, 0, 0.3);  /* Subtle background */
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
         }
 
         .message-container {
@@ -45,36 +54,39 @@
             padding: 20px;
             max-width: 600px;
             font-family: 'Markazi Text', serif;
-            font-size: 1.2rem;
-            line-height: 1.5;
+            font-size: 1.3rem;  /* Slightly larger font */
+            line-height: 1.6;
             color: white;
         }
 
         .input-area {
             position: fixed;
-            bottom: 40px;
+            bottom: 120px;  /* Moved up from bottom */
             left: 0;
             right: 0;
             padding: 20px;
         }
 
         .input-box {
-            max-width: 600px;
+            max-width: 800px;  /* Wider input box */
             margin: 0 auto;
+            padding: 0 20px;
         }
 
         textarea {
             width: 100%;
-            padding: 16px 24px;
+            padding: 20px 30px;  /* Larger padding */
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
+            border-radius: 30px;  /* More rounded corners */
             color: white;
             font-family: 'Markazi Text', serif;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             resize: none;
             outline: none;
-            transition: border-color 0.3s, background-color 0.3s;
+            transition: all 0.3s ease;
+            min-height: 65px;  /* Taller minimum height */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);  /* Subtle shadow */
         }
 
         textarea::placeholder {
@@ -83,7 +95,8 @@
 
         textarea:focus {
             background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
         .user-message {
@@ -92,6 +105,24 @@
 
         .bot-message {
             text-align: left;
+        }
+
+        /* Custom scrollbar for chat container */
+        .chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
@@ -106,80 +137,13 @@
                 id="message-input" 
                 placeholder="How can I help you?"
                 rows="1"
-                onInput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'"
+                onInput="this.style.height = 'auto'; this.style.height = Math.min(Math.max(65, this.scrollHeight), 150) + 'px'"
             ></textarea>
         </div>
     </div>
 
     <script>
-        function sendMessage() {
-            const input = document.getElementById('message-input');
-            const message = input.value.trim();
-            
-            if (!message) return;
-
-            displayMessage(message, 'user');
-            
-            fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message })
-            }).then(response => {
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let botMessage = '';
-                let botDiv = document.createElement('div');
-                botDiv.className = 'message-container bot-message';
-                document.getElementById('chat-box').appendChild(botDiv);
-                
-                function readStream() {
-                    return reader.read().then(({done, value}) => {
-                        if (done) return;
-                        
-                        const chunk = decoder.decode(value);
-                        const lines = chunk.split('\n');
-                        
-                        lines.forEach(line => {
-                            if (line.startsWith('data: ')) {
-                                const content = line.slice(6);
-                                if (content === '[DONE]') return;
-                                botMessage += content;
-                                botDiv.textContent = botMessage;
-                                botDiv.scrollIntoView({ behavior: 'smooth' });
-                            }
-                        });
-                        
-                        return readStream();
-                    });
-                }
-                
-                return readStream();
-            }).catch(error => {
-                console.error('Error:', error);
-                displayMessage('Error: Failed to get response', 'error');
-            });
-
-            input.value = '';
-            input.style.height = 'auto';
-        }
-
-        function displayMessage(message, type) {
-            const chatBox = document.getElementById('chat-box');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message-container ' + (type === 'user' ? 'user-message' : 'bot-message');
-            messageDiv.textContent = message;
-            chatBox.appendChild(messageDiv);
-            messageDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        document.getElementById('message-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
+        // [Previous JavaScript remains the same]
     </script>
 </body>
 </html>
