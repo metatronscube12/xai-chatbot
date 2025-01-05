@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>JesseAI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Markazi+Text:wght@400;700&display=swap">
     <style>
         * {
@@ -25,21 +26,21 @@
             left: 0;
             right: 0;
             text-align: center;
-            padding: 30px 0;
+            padding: 20px 0;
             background: #000000;
             z-index: 100;
         }
 
         .logo {
             font-family: 'DM Serif Text', serif;
-            font-size: 3.5rem;
+            font-size: 2.5rem;
             color: white;
             letter-spacing: 2px;
         }
 
         .main-container {
-            margin-top: 120px;
-            height: calc(100vh - 120px);
+            margin-top: 80px;
+            height: calc(100vh - 80px);
             display: flex;
             flex-direction: column;
             position: relative;
@@ -48,29 +49,29 @@
         .chat-container {
             flex-grow: 1;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
             width: 100%;
             max-width: 800px;
             overflow-y: auto;
-            margin-bottom: 180px;
+            margin-bottom: 120px;
         }
 
         .message-container {
-            margin: 20px auto;
-            padding: 20px;
-            max-width: 600px;
+            margin: 15px auto;
+            padding: 15px;
+            max-width: 90%;
             font-family: 'Markazi Text', serif;
-            font-size: 1.3rem;
-            line-height: 1.6;
+            font-size: 1.1rem;
+            line-height: 1.5;
             color: white;
         }
 
         .input-area {
             position: fixed;
-            bottom: 100px;
+            bottom: 20px;
             left: 0;
             right: 0;
-            padding: 20px;
+            padding: 15px;
             background: transparent;
             z-index: 50;
         }
@@ -78,22 +79,22 @@
         .input-box {
             max-width: 800px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 10px;
         }
 
         textarea {
             width: 100%;
-            padding: 20px 30px;
+            padding: 16px 20px;
             background-color: #ffffff !important;
             border: none;
-            border-radius: 30px;
+            border-radius: 25px;
             color: #000000 !important;
             font-family: 'Markazi Text', serif;
-            font-size: 1.2rem;
+            font-size: 16px;
             resize: none;
             outline: none;
             transition: all 0.3s ease;
-            min-height: 65px;
+            min-height: 56px;
             box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -118,7 +119,7 @@
         }
 
         .chat-container::-webkit-scrollbar {
-            width: 8px;
+            width: 4px;
         }
 
         .chat-container::-webkit-scrollbar-track {
@@ -127,11 +128,56 @@
 
         .chat-container::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
+            border-radius: 2px;
         }
 
-        .chat-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2rem;
+            }
+
+            .header {
+                padding: 15px 0;
+            }
+
+            .main-container {
+                margin-top: 60px;
+                height: calc(100vh - 60px);
+            }
+
+            .message-container {
+                font-size: 1rem;
+                padding: 12px;
+                margin: 10px auto;
+            }
+
+            textarea {
+                font-size: 16px;
+                padding: 15px 20px;
+            }
+
+            .input-area {
+                bottom: 10px;
+            }
+        }
+
+        /* Prevent zoom on focus for iOS */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) { 
+            select,
+            textarea,
+            input {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Handle viewport height on mobile browsers */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                height: -webkit-fill-available;
+            }
+            .main-container {
+                height: -webkit-fill-available;
+            }
         }
     </style>
 </head>
@@ -147,13 +193,20 @@
                     id="message-input" 
                     placeholder="How can I help you?"
                     rows="1"
-                    onInput="this.style.height = 'auto'; this.style.height = Math.min(Math.max(65, this.scrollHeight), 150) + 'px'"
+                    onInput="this.style.height = 'auto'; this.style.height = Math.min(Math.max(56, this.scrollHeight), 120) + 'px'"
                 ></textarea>
             </div>
         </div>
     </div>
 
     <script>
+        // Prevent zoom on mobile devices
+        document.addEventListener('touchmove', function(event) {
+            if (event.scale !== 1) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
         document.getElementById('message-input').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -225,6 +278,11 @@
             chatBox.appendChild(messageDiv);
             messageDiv.scrollIntoView({ behavior: 'smooth' });
         }
+
+        // Handle mobile viewport height changes
+        window.addEventListener('resize', () => {
+            document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+        });
     </script>
 </body>
 </html>
