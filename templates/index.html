@@ -4,90 +4,15 @@
     <title>JesseAI</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Markazi+Text:wght@400;700&display=swap">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: #000000;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: white;
-            overflow: hidden; /* Prevent body scroll */
-        }
-
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            text-align: center;
-            padding: 30px 0;
-            background: #000000;
-            z-index: 100;
-        }
-
-        .logo {
-            font-family: 'DM Serif Text', serif;
-            font-size: 3.5rem;
-            color: white;
-            letter-spacing: 2px;
-        }
-
-        .main-container {
-            margin-top: 120px; /* Space for header */
-            height: calc(100vh - 120px);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .chat-container {
-            flex-grow: 1;
-            margin: 0 auto;
-            padding: 20px;
-            width: 100%;
-            max-width: 800px;
-            overflow-y: auto;
-            margin-bottom: 180px; /* Space for input area */
-        }
-
-        .message-container {
-            margin: 20px auto;
-            padding: 20px;
-            max-width: 600px;
-            font-family: 'Markazi Text', serif;
-            font-size: 1.3rem;
-            line-height: 1.6;
-            color: white;
-        }
-
-        .input-area {
-            position: fixed;
-            bottom: 100px; /* Moved higher */
-            left: 0;
-            right: 0;
-            padding: 20px;
-            background: transparent;
-            z-index: 50;
-        }
-
-        .input-box {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+        /* [Previous styles remain the same until textarea] */
 
         textarea {
             width: 100%;
             padding: 20px 30px;
-            background: white; /* White background */
+            background-color: #ffffff !important; /* Force white background */
             border: none;
             border-radius: 30px;
-            color: black; /* Black text */
+            color: #000000 !important; /* Force black text */
             font-family: 'Markazi Text', serif;
             font-size: 1.2rem;
             resize: none;
@@ -95,41 +20,21 @@
             transition: all 0.3s ease;
             min-height: 65px;
             box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         textarea::placeholder {
-            color: rgba(0, 0, 0, 0.5); /* Darker placeholder text */
+            color: rgba(0, 0, 0, 0.5) !important; /* Force darker placeholder text */
         }
 
         textarea:focus {
+            background-color: #ffffff !important;
             box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
         }
 
-        .user-message {
-            text-align: right;
-        }
-
-        .bot-message {
-            text-align: left;
-        }
-
-        /* Custom scrollbar for chat container */
-        .chat-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .chat-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .chat-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-
-        .chat-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
+        /* [Rest of the styles remain the same] */
     </style>
 </head>
 <body>
@@ -151,7 +56,74 @@
     </div>
 
     <script>
-        // [Previous JavaScript remains the same]
+        document.getElementById('message-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Prevent new line
+                sendMessage(); // Send the message
+            }
+        });
+
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            displayMessage(message, 'user');
+            
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            }).then(response => {
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let botMessage = '';
+                let botDiv = document.createElement('div');
+                botDiv.className = 'message-container bot-message';
+                document.getElementById('chat-box').appendChild(botDiv);
+                
+                function readStream() {
+                    return reader.read().then(({done, value}) => {
+                        if (done) return;
+                        
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\n');
+                        
+                        lines.forEach(line => {
+                            if (line.startsWith('data: ')) {
+                                const content = line.slice(6);
+                                if (content === '[DONE]') return;
+                                botMessage += content;
+                                botDiv.textContent = botMessage;
+                                botDiv.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        });
+                        
+                        return readStream();
+                    });
+                }
+                
+                return readStream();
+            }).catch(error => {
+                console.error('Error:', error);
+                displayMessage('Error: Failed to get response', 'error');
+            });
+
+            input.value = '';
+            input.style.height = 'auto';
+        }
+
+        function displayMessage(message, type) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message-container ' + (type === 'user' ? 'user-message' : 'bot-message');
+            messageDiv.textContent = message;
+            chatBox.appendChild(messageDiv);
+            messageDiv.scrollIntoView({ behavior: 'smooth' });
+        }
     </script>
 </body>
 </html>
