@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import os
 import requests
@@ -12,7 +12,7 @@ XAI_API_URL = "https://api.x.ai/v1"
 
 @app.route('/')
 def home():
-    return 'Hello! This is my xAI chatbot.'
+    return render_template('index.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
