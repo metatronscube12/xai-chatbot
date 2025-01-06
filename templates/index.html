@@ -13,6 +13,7 @@
             height: 100vh;
             color: white;
             font-family: 'Markazi Text', serif;
+            overflow: hidden;
         }
 
         .header {
@@ -32,34 +33,44 @@
         }
 
         .chat-container {
-            padding: 100px 20px 150px 20px;
-            max-width: 800px;
-            margin: 0 auto;
+            position: fixed;
+            top: 100px;
+            bottom: 100px;
+            left: 0;
+            right: 0;
             overflow-y: auto;
-            height: calc(100vh - 250px);
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            padding: 20px;
+            -webkit-overflow-scrolling: touch;
         }
 
         #messages-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
             display: flex;
             flex-direction: column;
+            justify-content: flex-end;
+            min-height: 100%;
         }
 
         .message-container {
             margin: 10px 0;
             padding: 10px;
             font-size: 1.2rem;
+            width: 100%;
         }
 
         .input-area {
             position: fixed;
-            bottom: 20px;
+            bottom: 0;
             left: 0;
             right: 0;
             padding: 20px;
             background: #000000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.8);
+            z-index: 100;
         }
 
         .input-box {
@@ -80,6 +91,9 @@
             font-size: 16px;
             resize: none;
             outline: none;
+            min-height: 56px;
+            max-height: 150px;
+            overflow-y: auto;
         }
 
         .send-button {
@@ -105,6 +119,24 @@
 
         .bot-message {
             text-align: left;
+        }
+
+        /* Custom scrollbar for chat container */
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
@@ -134,6 +166,12 @@
                 e.preventDefault();
                 sendMessage();
             }
+        });
+
+        // Auto-resize textarea as user types
+        document.getElementById('message-input').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(Math.max(56, this.scrollHeight), 150) + 'px';
         });
 
         function sendMessage() {
@@ -186,6 +224,7 @@
             });
 
             input.value = '';
+            input.style.height = '56px';
         }
 
         function displayMessage(message, type) {
