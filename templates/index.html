@@ -21,7 +21,8 @@
             padding: 30px 0;
             position: fixed;
             top: 0;
-            width: 100%;
+            left: 0;
+            right: 0;
             background: #000000;
             z-index: 100;
         }
@@ -32,34 +33,31 @@
             margin: 0;
         }
 
-        .chat-container {
+        .main-content {
             position: fixed;
             top: 100px;
             bottom: 100px;
             left: 0;
             right: 0;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
+            overflow-y: scroll;
             -webkit-overflow-scrolling: touch;
         }
 
-        #messages-wrapper {
+        .chat-container {
             max-width: 800px;
             margin: 0 auto;
-            width: 100%;
+            padding: 20px;
+        }
+
+        #messages-wrapper {
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
-            min-height: 100%;
         }
 
         .message-container {
             margin: 10px 0;
             padding: 10px;
             font-size: 1.2rem;
-            width: 100%;
         }
 
         .input-area {
@@ -121,21 +119,21 @@
             text-align: left;
         }
 
-        /* Custom scrollbar for chat container */
-        .chat-container::-webkit-scrollbar {
-            width: 6px;
+        /* Custom scrollbar */
+        .main-content::-webkit-scrollbar {
+            width: 8px;
         }
 
-        .chat-container::-webkit-scrollbar-track {
+        .main-content::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .chat-container::-webkit-scrollbar-thumb {
+        .main-content::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
+            border-radius: 4px;
         }
 
-        .chat-container::-webkit-scrollbar-thumb:hover {
+        .main-content::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
     </style>
@@ -144,8 +142,10 @@
     <div class="header">
         <h1 class="logo">JesseAI</h1>
     </div>
-    <div id="chat-box" class="chat-container">
-        <div id="messages-wrapper"></div>
+    <div class="main-content">
+        <div class="chat-container">
+            <div id="messages-wrapper"></div>
+        </div>
     </div>
     <div class="input-area">
         <div class="input-box">
