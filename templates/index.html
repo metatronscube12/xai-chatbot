@@ -37,6 +37,14 @@
             margin: 0 auto;
             overflow-y: auto;
             height: calc(100vh - 250px);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        #messages-wrapper {
+            display: flex;
+            flex-direction: column;
         }
 
         .message-container {
@@ -104,7 +112,9 @@
     <div class="header">
         <h1 class="logo">JesseAI</h1>
     </div>
-    <div id="chat-box" class="chat-container"></div>
+    <div id="chat-box" class="chat-container">
+        <div id="messages-wrapper"></div>
+    </div>
     <div class="input-area">
         <div class="input-box">
             <textarea 
@@ -146,7 +156,7 @@
                 let botMessage = '';
                 let botDiv = document.createElement('div');
                 botDiv.className = 'message-container bot-message';
-                document.getElementById('chat-box').appendChild(botDiv);
+                document.getElementById('messages-wrapper').appendChild(botDiv);
                 
                 function readStream() {
                     return reader.read().then(({done, value}) => {
@@ -179,11 +189,11 @@
         }
 
         function displayMessage(message, type) {
-            const chatBox = document.getElementById('chat-box');
+            const messagesWrapper = document.getElementById('messages-wrapper');
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message-container ' + (type === 'user' ? 'user-message' : 'bot-message');
             messageDiv.textContent = message;
-            chatBox.appendChild(messageDiv);
+            messagesWrapper.appendChild(messageDiv);
             messageDiv.scrollIntoView({ behavior: 'smooth' });
         }
     </script>
